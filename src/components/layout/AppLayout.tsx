@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, LogOut, Plus, Truck, Warehouse } from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +15,12 @@ const NAV = [
 export function AppLayout() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // Na ekranie formularza produktu pływający „+" zasłaniałby przyciski
+  // akcji (Dodaj/Anuluj) i jest tam zbędny — ukrywamy go.
+  const isProductForm =
+    pathname === "/produkt/nowy" || pathname.endsWith("/edytuj");
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,15 +99,17 @@ export function AppLayout() {
         ))}
       </nav>
 
-      {/* Pływający przycisk „Dodaj" — zawsze dostępny na telefonie */}
-      <Button
-        onClick={() => navigate("/produkt/nowy")}
-        className="fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full shadow-xl shadow-primary/30 md:hidden"
-        size="icon"
-        aria-label="Dodaj produkt"
-      >
-        <Plus className="!h-6 !w-6" />
-      </Button>
+      {/* Pływający przycisk „Dodaj" — na telefonie, poza ekranem formularza */}
+      {!isProductForm && (
+        <Button
+          onClick={() => navigate("/produkt/nowy")}
+          className="fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full shadow-xl shadow-primary/30 md:hidden"
+          size="icon"
+          aria-label="Dodaj produkt"
+        >
+          <Plus className="!h-6 !w-6" />
+        </Button>
+      )}
     </div>
   );
 }
