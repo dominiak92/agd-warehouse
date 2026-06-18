@@ -20,9 +20,9 @@ export function AppLayout() {
     <div className="min-h-screen bg-background">
       {/* Górny pasek */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
+        <div className="mx-auto flex h-20 max-w-6xl items-center gap-3 px-4">
           <NavLink to="/" className="flex shrink-0 items-center">
-            <Logo className="h-9" />
+            <Logo className="h-16" />
           </NavLink>
 
           {/* Nawigacja desktop */}

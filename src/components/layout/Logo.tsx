@@ -6,7 +6,7 @@ export function Logo({ className }: { className?: string }) {
     <img
       src={logoUrl}
       alt="AMILO AGD"
-      className={cn("h-auto w-auto select-none", className)}
+      className={cn("w-auto select-none object-contain", className)}
       draggable={false}
     />
   );

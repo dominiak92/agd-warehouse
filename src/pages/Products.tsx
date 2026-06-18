@@ -15,6 +15,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { ProductCard } from "@/components/products/ProductCard";
 import { useProducts, useUpdateProduct } from "@/hooks/useProducts";
+import { cn } from "@/lib/utils";
 import { CATEGORIES, STATUSES } from "@/lib/constants";
 import { purchasePricePln } from "@/lib/currency";
 import type { ProductStatus, ProductWithTrip } from "@/lib/types";
@@ -145,21 +146,32 @@ export default function Products() {
           variant="outline"
           size="icon"
           onClick={() => setShowFilters((s) => !s)}
-          title="Filtry"
+          title="Więcej filtrów"
         >
           <SlidersHorizontal className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Filtry */}
-      {showFilters && (
-        <div className="grid grid-cols-2 gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-3 lg:grid-cols-6">
-          <FilterSelect
-            label="Status"
-            value={status}
-            onChange={setStatus}
-            options={STATUSES.map((s) => ({ value: s.value, label: s.label }))}
+      {/* Szybkie filtrowanie po statusie */}
+      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+        <StatusChip
+          label="Wszystkie"
+          active={status === ALL}
+          onClick={() => setStatus(ALL)}
+        />
+        {STATUSES.map((s) => (
+          <StatusChip
+            key={s.value}
+            label={s.label}
+            active={status === s.value}
+            onClick={() => setStatus(s.value)}
           />
+        ))}
+      </div>
+
+      {/* Filtry zaawansowane */}
+      {showFilters && (
+        <div className="grid grid-cols-2 gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-3 lg:grid-cols-5">
           <FilterSelect
             label="Kategoria"
             value={category}
@@ -248,6 +260,31 @@ export default function Products() {
         </div>
       )}
     </div>
+  );
+}
+
+function StatusChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
+      )}
+    >
+      {label}
+    </button>
   );
 }
 
