@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Truck } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -13,6 +14,13 @@ interface Props {
   product: ProductWithTrip;
   onToggleListed: (product: ProductWithTrip, listed: boolean) => void;
   toggleDisabledFor?: string | null;
+}
+
+// Etykieta wyjazdu (nazwa/miejsce + data) zamiast SKU na kafelku.
+function tripLabel(trip: ProductWithTrip["trips"]): string {
+  if (!trip) return "Bez wyjazdu";
+  const d = new Date(trip.date).toLocaleDateString("pl-PL");
+  return trip.location ? `${trip.location} · ${d}` : d;
 }
 
 export function ProductCard({
@@ -74,8 +82,9 @@ export function ProductCard({
           className="flex items-center justify-between border-t border-border pt-3"
           onClick={(e) => e.stopPropagation()}
         >
-          <span className="font-mono text-[11px] text-muted-foreground">
-            {product.sku ?? "—"}
+          <span className="flex min-w-0 items-center gap-1 text-[11px] text-muted-foreground">
+            <Truck className="h-3 w-3 shrink-0" />
+            <span className="truncate">{tripLabel(product.trips)}</span>
           </span>
           <div className="flex items-center gap-2">
             <Label
