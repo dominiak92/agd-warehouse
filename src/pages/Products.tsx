@@ -148,7 +148,7 @@ export default function Products() {
               <span className="hidden sm:inline">Sortuj</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-2xl">
+          <SheetContent side="right" className="w-80 max-w-[85vw]">
             <SheetHeader>
               <SheetTitle>Sortuj produkty</SheetTitle>
             </SheetHeader>

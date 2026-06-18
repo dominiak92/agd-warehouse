@@ -184,7 +184,6 @@ export default function ProductDetails() {
             </>
           )}
           <Row label="Data zakupu">{formatDate(product.purchase_date)}</Row>
-          <Row label="Miejsce">{product.purchase_location ?? "—"}</Row>
           <Row label="Wyjazd">
             {product.trips ? (
               <button

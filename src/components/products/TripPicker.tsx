@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,7 +21,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useCreateTrip, useTrips } from "@/hooks/useTrips";
+import { useCreateTrip, useTrips, tripKeys } from "@/hooks/useTrips";
+import type { Trip } from "@/lib/types";
 
 const NONE = "none";
 
@@ -38,6 +40,7 @@ export function TripPicker({
 }) {
   const { data: trips } = useTrips();
   const createTrip = useCreateTrip();
+  const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [location, setLocation] = useState("");
@@ -49,6 +52,13 @@ export function TripPicker({
         date,
         location: location.trim() || null,
         notes: notes.trim() || null,
+      });
+      // Wstaw nowy wyjazd do cache od razu, aby istniał jako opcja selecta
+      // w tym samym renderze, w którym ustawiamy wartość (inaczej Select nie
+      // pokaże świeżo utworzonego wyjazdu, dopóki lista się nie odświeży).
+      qc.setQueryData<Trip[]>(tripKeys.list(), (old) => {
+        const rest = old?.filter((t) => t.id !== trip.id) ?? [];
+        return [trip, ...rest];
       });
       onChange(trip.id);
       toast.success("Dodano wyjazd");

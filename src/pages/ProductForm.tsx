@@ -358,34 +358,19 @@ export default function ProductForm() {
                 )}
               />
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="purchase_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Data zakupu</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="purchase_location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Miejsce zakupu</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Berlin, sklep…" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="purchase_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data zakupu</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -400,7 +385,9 @@ export default function ProductForm() {
                       />
                     </FormControl>
                     <FormDescription>
-                      Pogrupuj zakupy z jednego wyjazdu (opcjonalne).
+                      Wybierz wyjazd lub dodaj nowy przyciskiem „+" — produkt od
+                      razu trafi do tego wyjazdu. Miejsce zakupu zapisujesz jako
+                      lokalizację wyjazdu.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
