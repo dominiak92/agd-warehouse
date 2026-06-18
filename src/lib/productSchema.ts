@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { CATEGORIES, STATUSES } from "@/lib/constants";
+import { CATEGORIES, CONDITIONS, STATUSES } from "@/lib/constants";
 import type { Product, ProductInput } from "@/lib/types";
 
 const categoryValues = CATEGORIES.map((c) => c.value) as [string, ...string[]];
 const statusValues = STATUSES.map((s) => s.value) as [string, ...string[]];
+const conditionValues = CONDITIONS.map((c) => c.value) as [string, ...string[]];
 
 // Wszystkie pola formularza to stringi (natywne inputy zwracają stringi).
 // Konwersję na liczby/null robimy w toProductInput.
@@ -25,6 +26,7 @@ export const productFormSchema = z.object({
   sale_price: numericString,
   sale_date: z.string(),
   status: z.enum(statusValues),
+  condition: z.enum(conditionValues),
   olx_url: z
     .string()
     .refine(
@@ -55,6 +57,7 @@ export function toFormValues(product?: Product): ProductFormValues {
     sale_price: num(product?.sale_price),
     sale_date: str(product?.sale_date),
     status: product?.status ?? "w_magazynie",
+    condition: product?.condition ?? "sprawny",
     olx_url: str(product?.olx_url),
     purchase_date: product?.purchase_date ?? new Date().toISOString().slice(0, 10),
     purchase_location: str(product?.purchase_location),
@@ -80,6 +83,7 @@ export function toProductInput(values: ProductFormValues): ProductInput {
     sale_price: num(values.sale_price),
     sale_date: str(values.sale_date),
     status: values.status as ProductInput["status"],
+    condition: values.condition as ProductInput["condition"],
     olx_url: str(values.olx_url),
     purchase_date: str(values.purchase_date),
     purchase_location: str(values.purchase_location),

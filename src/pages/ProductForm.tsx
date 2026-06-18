@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { CATEGORIES, BRANDS, STATUSES } from "@/lib/constants";
+import { CATEGORIES, BRANDS, STATUSES, CONDITIONS } from "@/lib/constants";
 import {
   productFormSchema,
   toFormValues,
@@ -219,28 +219,71 @@ export default function ProductForm() {
                 />
               </div>
 
+              <FormField
+                control={form.control}
+                name="condition"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Stan techniczny</FormLabel>
+                    <FormControl>
+                      <div className="flex overflow-hidden rounded-md border border-input">
+                        {CONDITIONS.map((c) => (
+                          <button
+                            key={c.value}
+                            type="button"
+                            onClick={() => field.onChange(c.value)}
+                            className={cn(
+                              "flex-1 px-3 py-2 text-sm font-medium transition-colors",
+                              field.value === c.value
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-background text-muted-foreground hover:bg-secondary"
+                            )}
+                          >
+                            {c.label}
+                          </button>
+                        ))}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="brand"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Marka</FormLabel>
-                      <FormControl>
-                        <Input
-                          list="brand-suggestions"
-                          placeholder="Bosch"
-                          {...field}
-                        />
-                      </FormControl>
-                      <datalist id="brand-suggestions">
-                        {BRANDS.map((b) => (
-                          <option key={b} value={b} />
-                        ))}
-                      </datalist>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    // Dodaj istniejącą markę spoza listy (np. przy edycji), aby
+                    // Select potrafił ją pokazać jako wybraną.
+                    const options =
+                      field.value && !BRANDS.includes(field.value)
+                        ? [field.value, ...BRANDS]
+                        : BRANDS;
+                    return (
+                      <FormItem>
+                        <FormLabel>Marka</FormLabel>
+                        <Select
+                          value={field.value || undefined}
+                          onValueChange={field.onChange}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Wybierz markę" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {options.map((b) => (
+                              <SelectItem key={b} value={b}>
+                                {b}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
                 <FormField
                   control={form.control}
@@ -372,44 +415,25 @@ export default function ProductForm() {
               <CardTitle className="text-base">Sprzedaż</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="listing_price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cena wystawienia (PLN)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          inputMode="decimal"
-                          step="0.01"
-                          placeholder="0,00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="olx_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Link OLX</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="url"
-                          placeholder="https://olx.pl/…"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="listing_price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cena wystawienia (PLN)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.01"
+                        placeholder="0,00"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <FormField
                   control={form.control}

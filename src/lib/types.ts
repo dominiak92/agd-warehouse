@@ -10,6 +10,23 @@ export type ProductCategory =
   | "mikrofalowka"
   | "plyta"
   | "ekspres"
+  // RTV / audio
+  | "telewizor"
+  | "wzmacniacz"
+  | "amplituner"
+  | "deck"
+  | "odtwarzacz_cd"
+  | "zestaw_audio"
+  | "gramofon"
+  | "kolumny"
+  | "bluray"
+  | "vhs"
+  | "minidisc"
+  | "mini_wieza"
+  | "laptop"
+  | "radio"
+  | "dvd"
+  | "polskie_rtv"
   | "inne";
 
 export type ProductStatus =
@@ -17,6 +34,8 @@ export type ProductStatus =
   | "wystawione"
   | "zarezerwowane"
   | "sprzedane";
+
+export type ProductCondition = "sprawny" | "niesprawny";
 
 export type CurrencyCode = "EUR" | "PLN";
 
@@ -45,6 +64,7 @@ export interface Product {
   sale_price: number | null;
   sale_date: string | null;
   status: ProductStatus;
+  condition: ProductCondition | null;
   olx_url: string | null;
   purchase_date: string | null;
   purchase_location: string | null;

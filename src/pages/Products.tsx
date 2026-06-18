@@ -1,22 +1,21 @@
 import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal, PackageOpen } from "lucide-react";
+import { ArrowDownUp, Check, PackageOpen, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { ProductCard } from "@/components/products/ProductCard";
 import { useProducts, useUpdateProduct } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
-import { CATEGORIES, STATUSES } from "@/lib/constants";
+import { STATUSES } from "@/lib/constants";
 import { purchasePricePln } from "@/lib/currency";
 import type { ProductStatus, ProductWithTrip } from "@/lib/types";
 
@@ -26,7 +25,18 @@ type SortKey =
   | "price_desc"
   | "price_asc"
   | "name_asc"
-  | "status_asc";
+  | "status_asc"
+  | "condition_asc";
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "purchase_date_desc", label: "Data zakupu (najnowsze)" },
+  { value: "purchase_date_asc", label: "Data zakupu (najstarsze)" },
+  { value: "price_desc", label: "Cena (malejąco)" },
+  { value: "price_asc", label: "Cena (rosnąco)" },
+  { value: "name_asc", label: "Nazwa (A–Z)" },
+  { value: "status_asc", label: "Status" },
+  { value: "condition_asc", label: "Stan (sprawne najpierw)" },
+];
 
 const ALL = "all";
 
@@ -42,20 +52,8 @@ export default function Products() {
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>(ALL);
-  const [category, setCategory] = useState<string>(ALL);
-  const [brand, setBrand] = useState<string>(ALL);
-  const [currency, setCurrency] = useState<string>(ALL);
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
   const [sort, setSort] = useState<SortKey>("purchase_date_desc");
-  const [showFilters, setShowFilters] = useState(false);
-
-  // Marki obecne w danych (do filtra)
-  const brands = useMemo(() => {
-    const set = new Set<string>();
-    products?.forEach((p) => p.brand && set.add(p.brand));
-    return Array.from(set).sort();
-  }, [products]);
+  const [sortOpen, setSortOpen] = useState(false);
 
   const filtered = useMemo(() => {
     let list = products ? [...products] : [];
@@ -68,12 +66,6 @@ export default function Products() {
       );
     }
     if (status !== ALL) list = list.filter((p) => p.status === status);
-    if (category !== ALL) list = list.filter((p) => p.category === category);
-    if (brand !== ALL) list = list.filter((p) => p.brand === brand);
-    if (currency !== ALL)
-      list = list.filter((p) => p.purchase_currency === currency);
-    if (dateFrom) list = list.filter((p) => (p.purchase_date ?? "") >= dateFrom);
-    if (dateTo) list = list.filter((p) => (p.purchase_date ?? "") <= dateTo);
 
     list.sort((a, b) => {
       switch (sort) {
@@ -83,6 +75,12 @@ export default function Products() {
           return (
             (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99)
           );
+        case "condition_asc": {
+          // Sprawne najpierw, brak stanu na końcu
+          const rank = (c: string | null) =>
+            c === "sprawny" ? 0 : c === "niesprawny" ? 1 : 2;
+          return rank(a.condition) - rank(b.condition);
+        }
         case "price_desc":
         case "price_asc": {
           const pa = purchasePricePln(a) ?? 0;
@@ -97,17 +95,7 @@ export default function Products() {
       }
     });
     return list;
-  }, [
-    products,
-    search,
-    status,
-    category,
-    brand,
-    currency,
-    dateFrom,
-    dateTo,
-    sort,
-  ]);
+  }, [products, search, status, sort]);
 
   async function handleToggleListed(
     product: ProductWithTrip,
@@ -142,7 +130,7 @@ export default function Products() {
         </span>
       </div>
 
-      {/* Wyszukiwarka */}
+      {/* Wyszukiwarka + sortowanie */}
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -153,14 +141,43 @@ export default function Products() {
             className="pl-9"
           />
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setShowFilters((s) => !s)}
-          title="Więcej filtrów"
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-        </Button>
+        <Sheet open={sortOpen} onOpenChange={setSortOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <ArrowDownUp className="h-4 w-4" />
+              <span className="hidden sm:inline">Sortuj</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="rounded-t-2xl">
+            <SheetHeader>
+              <SheetTitle>Sortuj produkty</SheetTitle>
+            </SheetHeader>
+            <div className="mt-4 flex flex-col gap-1 pb-2">
+              {SORT_OPTIONS.map((opt) => {
+                const active = sort === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      setSort(opt.value);
+                      setSortOpen(false);
+                    }}
+                    className={cn(
+                      "flex items-center justify-between rounded-md px-3 py-3 text-left text-sm transition-colors",
+                      active
+                        ? "bg-secondary font-medium text-foreground"
+                        : "text-muted-foreground hover:bg-secondary/60"
+                    )}
+                  >
+                    {opt.label}
+                    {active && <Check className="h-4 w-4 text-primary" />}
+                  </button>
+                );
+              })}
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
 
       {/* Szybkie filtrowanie po statusie */}
@@ -178,74 +195,6 @@ export default function Products() {
             onClick={() => setStatus(s.value)}
           />
         ))}
-      </div>
-
-      {/* Filtry zaawansowane */}
-      {showFilters && (
-        <div className="grid grid-cols-2 gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-3 lg:grid-cols-5">
-          <FilterSelect
-            label="Kategoria"
-            value={category}
-            onChange={setCategory}
-            options={CATEGORIES.map((c) => ({
-              value: c.value,
-              label: c.label,
-            }))}
-          />
-          <FilterSelect
-            label="Marka"
-            value={brand}
-            onChange={setBrand}
-            options={brands.map((b) => ({ value: b, label: b }))}
-          />
-          <FilterSelect
-            label="Waluta"
-            value={currency}
-            onChange={setCurrency}
-            options={[
-              { value: "EUR", label: "EUR" },
-              { value: "PLN", label: "PLN" },
-            ]}
-          />
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Zakup od</Label>
-            <Input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Zakup do</Label>
-            <Input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Sortowanie */}
-      <div className="flex items-center justify-end gap-2">
-        <Label className="text-xs text-muted-foreground">Sortuj</Label>
-        <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
-          <SelectTrigger className="h-9 w-[200px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="purchase_date_desc">
-              Data zakupu (najnowsze)
-            </SelectItem>
-            <SelectItem value="purchase_date_asc">
-              Data zakupu (najstarsze)
-            </SelectItem>
-            <SelectItem value="price_desc">Cena (malejąco)</SelectItem>
-            <SelectItem value="price_asc">Cena (rosnąco)</SelectItem>
-            <SelectItem value="name_asc">Nazwa (A–Z)</SelectItem>
-            <SelectItem value="status_asc">Status</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Lista */}
@@ -300,37 +249,6 @@ function StatusChip({
   );
 }
 
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label className="text-xs text-muted-foreground">{label}</Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-9">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Wszystkie</SelectItem>
-          {options.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              {o.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
-
 function EmptyState({ hasProducts }: { hasProducts: boolean }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border py-16 text-center">
@@ -341,7 +259,7 @@ function EmptyState({ hasProducts }: { hasProducts: boolean }) {
         </p>
         <p className="text-sm text-muted-foreground">
           {hasProducts
-            ? "Zmień kryteria wyszukiwania lub filtry."
+            ? "Zmień kryteria wyszukiwania lub sortowanie."
             : "Dodaj pierwszy produkt przyciskiem „Dodaj produkt”."}
         </p>
       </div>

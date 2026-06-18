@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/products/StatusBadge";
-import { categoryLabel } from "@/lib/constants";
+import { categoryLabel, conditionMeta } from "@/lib/constants";
 import { formatMoney, purchasePricePln } from "@/lib/currency";
 import type { ProductWithTrip } from "@/lib/types";
 
@@ -39,8 +40,13 @@ export function ProductCard({
                 categoryLabel(product.category)}
             </p>
           </div>
-          <div className="shrink-0">
+          <div className="flex shrink-0 flex-col items-end gap-1">
             <StatusBadge status={product.status} />
+            {product.condition && (
+              <Badge variant={conditionMeta(product.condition).badge}>
+                {conditionMeta(product.condition).label}
+              </Badge>
+            )}
           </div>
         </div>
 

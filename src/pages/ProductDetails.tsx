@@ -26,10 +26,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/products/StatusBadge";
 import { SellProductDialog } from "@/components/products/SellProductDialog";
 import { useDeleteProduct, useProduct } from "@/hooks/useProducts";
-import { categoryLabel } from "@/lib/constants";
+import { categoryLabel, conditionMeta } from "@/lib/constants";
 import {
   calcProfit,
   formatMoney,
@@ -143,6 +144,15 @@ export default function ProductDetails() {
         </CardHeader>
         <CardContent className="divide-y divide-border">
           <Row label="Kategoria">{categoryLabel(product.category)}</Row>
+          <Row label="Stan techniczny">
+            {product.condition ? (
+              <Badge variant={conditionMeta(product.condition).badge}>
+                {conditionMeta(product.condition).label}
+              </Badge>
+            ) : (
+              "—"
+            )}
+          </Row>
           <Row label="Marka">{product.brand ?? "—"}</Row>
           <Row label="Model">{product.model ?? "—"}</Row>
           <Row label="Stan / uwagi">
