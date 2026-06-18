@@ -25,9 +25,16 @@ type SortKey =
   | "purchase_date_asc"
   | "price_desc"
   | "price_asc"
-  | "name_asc";
+  | "name_asc"
+  | "status_asc";
 
 const ALL = "all";
+
+// Kolejność statusów do sortowania (cykl życia produktu)
+const STATUS_ORDER = STATUSES.reduce<Record<string, number>>(
+  (acc, s, i) => ({ ...acc, [s.value]: i }),
+  {}
+);
 
 export default function Products() {
   const { data: products, isLoading } = useProducts();
@@ -72,6 +79,10 @@ export default function Products() {
       switch (sort) {
         case "name_asc":
           return a.name.localeCompare(b.name, "pl");
+        case "status_asc":
+          return (
+            (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99)
+          );
         case "price_desc":
         case "price_asc": {
           const pa = purchasePricePln(a) ?? 0;
@@ -232,6 +243,7 @@ export default function Products() {
             <SelectItem value="price_desc">Cena (malejąco)</SelectItem>
             <SelectItem value="price_asc">Cena (rosnąco)</SelectItem>
             <SelectItem value="name_asc">Nazwa (A–Z)</SelectItem>
+            <SelectItem value="status_asc">Status</SelectItem>
           </SelectContent>
         </Select>
       </div>
