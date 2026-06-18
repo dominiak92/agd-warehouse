@@ -36,7 +36,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm space-y-8">
         <div className="flex flex-col items-center gap-2">
-          <Logo className="h-28" />
+          <Logo className="h-16" />
           <p className="text-sm text-muted-foreground">
             Magazyn sprzętu AGD
           </p>

@@ -1,4 +1,4 @@
-import logoUrl from "@/lib/amilo-napis.png";
+import logoUrl from "@/lib/amilo-logo.png";
 import { cn } from "@/lib/utils";
 
 export function Logo({ className }: { className?: string }) {
