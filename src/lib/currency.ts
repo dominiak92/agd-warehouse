@@ -1,4 +1,5 @@
 import type { Product } from "@/lib/types";
+import { DEFAULT_EXCHANGE_RATE } from "@/lib/constants";
 
 const plnFormatter = new Intl.NumberFormat("pl-PL", {
   style: "currency",
@@ -40,7 +41,7 @@ export function formatPercent(value: number | null | undefined): string {
  */
 export function purchasePricePln(
   product: Pick<Product, "purchase_price" | "purchase_currency" | "exchange_rate">,
-  fallbackRate: number
+  fallbackRate: number = DEFAULT_EXCHANGE_RATE
 ): number | null {
   if (product.purchase_price === null || product.purchase_price === undefined) {
     return null;
@@ -67,7 +68,7 @@ export function calcProfit(
     Product,
     "purchase_price" | "purchase_currency" | "exchange_rate" | "sale_price"
   >,
-  fallbackRate: number
+  fallbackRate: number = DEFAULT_EXCHANGE_RATE
 ): ProfitResult {
   const costPln = purchasePricePln(product, fallbackRate);
   if (

@@ -29,8 +29,49 @@ export const STATUSES: {
   { value: "sprzedane", label: "Sprzedane", badge: "green" },
 ];
 
-// Najczęstsze marki (lista podpowiedzi — pole pozostaje wolnym tekstem)
-export const BRANDS = ["Bosch", "Siemens", "Miele", "Inne"];
+// Marki AGD — podpowiedzi (pole pozostaje wolnym tekstem). Premium i popularne.
+export const BRANDS = [
+  // Premium
+  "Miele",
+  "Bosch",
+  "Siemens",
+  "Gaggenau",
+  "Neff",
+  "AEG",
+  "Liebherr",
+  "Smeg",
+  "V-ZUG",
+  "Asko",
+  "De Dietrich",
+  // Średnia / popularne
+  "Electrolux",
+  "Whirlpool",
+  "Samsung",
+  "LG",
+  "Panasonic",
+  "Sharp",
+  "Hotpoint",
+  "Hotpoint-Ariston",
+  "Indesit",
+  "Zanussi",
+  "Gorenje",
+  "Hisense",
+  "Haier",
+  "Candy",
+  "Beko",
+  "Amica",
+  "Toshiba",
+  "Hoover",
+  "Privileg",
+  "Bauknecht",
+  "Constructa",
+  "Teka",
+  "Franke",
+  "Brandt",
+  "Grundig",
+  "Sauter",
+  "Inne",
+];
 
 export const CURRENCIES: CurrencyCode[] = ["EUR", "PLN"];
 

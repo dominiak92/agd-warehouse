@@ -3,7 +3,8 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "18"
+  # PWA (workbox) wymaga Node >= 18.19 / 20 — używamy 20 na produkcji
+  NODE_VERSION = "20"
 
 # SPA fallback - wszystkie ścieżki obsługuje React Router
 [[redirects]]

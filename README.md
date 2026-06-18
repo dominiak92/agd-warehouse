@@ -12,6 +12,8 @@ motyw, responsywna (mobile-first przy formularzach).
 - **TanStack Query** — cache i komunikacja z bazą (`src/hooks`)
 - **React Router** — routing i chronione trasy
 - **react-hook-form + zod** — formularze i walidacja
+- **PWA** (`vite-plugin-pwa`) — instalowalna na telefonie, działa offline
+- **NBP API** — automatyczny kurs EUR→PLN na dzień zakupu
 - **Netlify** — hosting (SPA)
 
 ## Funkcje
@@ -20,14 +22,13 @@ motyw, responsywna (mobile-first przy formularzach).
   filtry (status, kategoria, marka, waluta, zakres dat zakupu), sortowanie,
   szybki przełącznik „wystawione/niewystawione" z karty.
 - **Produkt** — dodawanie/edycja (mobile-first), przełącznik waluty EUR/PLN,
-  przypisanie do wyjazdu lub utworzenie nowego „w locie".
+  podgląd „≈ PLN" wg kursu NBP, przypisanie do wyjazdu lub utworzenie „w locie".
 - **Szczegóły** — pełny widok, „Otwórz na OLX", „Oznacz jako sprzedane"
   (cena + data), zysk i marża, usuwanie.
 - **Wyjazdy** (`/wyjazdy`) — lista wyjazdów z liczbą produktów i sumą wydatków;
   szczegóły wyjazdu z produktami i podsumowaniem.
 - **Podsumowanie** (`/podsumowanie`) — liczniki statusów, zamrożony kapitał,
-  zysk ze sprzedanych, wartość towaru wystawionego.
-- **Ustawienia** (`/ustawienia`) — globalny kurs EUR→PLN, eksport całej listy do CSV.
+  wartość towaru wystawionego oraz **sprzedaż i zysk z bieżącego miesiąca**.
 
 ## 1. Konfiguracja Supabase
 
@@ -65,6 +66,10 @@ npm run dev
 ```
 Aplikacja: http://localhost:5173
 
+> **Node:** dev działa na Node 18.16+. **Produkcyjny `npm run build` wymaga
+> Node ≥ 18.19 / 20** (generator service workera PWA — workbox). Netlify używa
+> Node 20 (ustawione w `netlify.toml`).
+
 ## 4. Deploy na Netlify
 
 1. Wypchnij repo na GitHub.
@@ -86,16 +91,25 @@ Aplikacja: http://localhost:5173
   więc front nie wysyła go ręcznie.
 - **SKU** generowany globalną sekwencją w formacie `AMILO-0001` (jednoosobowa
   aplikacja → globalna sekwencja jest wystarczająca).
-- **Przeliczenia EUR→PLN**: priorytet ma kurs zapisany przy produkcie
-  (`exchange_rate`); gdy go brak — kurs globalny z Ustawień (domyślnie 4,30).
+- **Kurs EUR→PLN z NBP**: przy zapisie produktu (zakup w EUR) aplikacja pobiera
+  kurs średni z NBP (tabela A) na **dzień zakupu** i zapisuje go w polu
+  `exchange_rate`. Dla weekendów/świąt brany jest najbliższy wcześniejszy dzień
+  notowania. Wszystkie przeliczenia na PLN są przybliżone („≈”).
+- **Brak zakładki Ustawień / importu CSV** — kurs jest automatyczny (NBP),
+  więc globalny kurs i eksport okazały się zbędne. Tabela `user_settings`
+  pozostaje w migracji, ale aplikacja jej nie używa.
 - **Zysk** = `sale_price (PLN) − cena zakupu (PLN)`; **marża** liczona względem
   ceny sprzedaży.
+- **Podsumowanie**: liczniki magazynowe i zamrożony kapitał są bieżące (stan
+  teraz), natomiast **„Sprzedane” i „Zysk” dotyczą bieżącego miesiąca**
+  (wg `sale_date`).
 - **Zamrożony kapitał** = suma cen zakupu (w PLN) produktów niesprzedanych.
 - **Szybki przełącznik** na karcie zmienia status `wystawione ⇄ w_magazynie`
   (zablokowany dla sprzedanych).
 - **Usunięcie wyjazdu** nie usuwa produktów — tracą jedynie przypisanie
   (`trip_id` = NULL).
-- **CSV** używa separatora `;` i BOM UTF-8 (poprawne polskie znaki w Excelu).
+- **PWA**: aplikację można „zainstalować” (Dodaj do ekranu głównego); kursy NBP
+  są cache'owane (NetworkFirst), więc działają też offline.
 - **Ceny sprzedaży/wystawienia** trzymane w PLN (sprzedaż następuje w Polsce).
 
 ## Struktura
@@ -107,9 +121,9 @@ src/
     layout/      AppLayout, Logo
     products/    ProductCard, StatusBadge, TripPicker, SellProductDialog
   contexts/      AuthContext
-  hooks/         useProducts, useTrips, useSettings (TanStack Query)
-  lib/           supabase, types, constants, currency, csv, productSchema, queryClient
-  pages/         Login, Products, ProductForm, ProductDetails, Trips, TripDetails, Dashboard, Settings
+  hooks/         useProducts, useTrips, useNbpRate (TanStack Query)
+  lib/           supabase, types, constants, currency, nbp, productSchema, queryClient
+  pages/         Login, Products, ProductForm, ProductDetails, Trips, TripDetails, Dashboard
 supabase/
   migrations/    0001_init.sql
 ```

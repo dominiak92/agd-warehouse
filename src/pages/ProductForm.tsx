@@ -44,6 +44,9 @@ import {
   useProduct,
   useUpdateProduct,
 } from "@/hooks/useProducts";
+import { useNbpEurRate } from "@/hooks/useNbpRate";
+import { fetchNbpEurRate } from "@/lib/nbp";
+import { formatMoney } from "@/lib/currency";
 import { TripPicker } from "@/components/products/TripPicker";
 
 export default function ProductForm() {
@@ -66,9 +69,35 @@ export default function ProductForm() {
   }, [product]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currency = form.watch("purchase_currency");
+  const purchasePrice = form.watch("purchase_price");
+  const purchaseDate = form.watch("purchase_date");
+
+  // Podgląd kursu NBP na żywo (gdy zakup w EUR i znana data)
+  const nbpQuery = useNbpEurRate(
+    currency === "EUR" && purchaseDate ? purchaseDate : undefined
+  );
+  const priceNum = Number(purchasePrice);
+  const previewPln =
+    currency === "EUR" && nbpQuery.data && !Number.isNaN(priceNum) && priceNum > 0
+      ? priceNum * nbpQuery.data.rate
+      : null;
 
   async function onSubmit(values: ProductFormValues) {
     const payload = toProductInput(values);
+
+    // Kurs EUR→PLN z NBP na dzień zakupu (zapisywany przy produkcie)
+    if (payload.purchase_currency === "EUR" && payload.purchase_date) {
+      const nbp = await fetchNbpEurRate(payload.purchase_date);
+      payload.exchange_rate = nbp?.rate ?? null;
+      if (!nbp) {
+        toast.warning(
+          "Nie udało się pobrać kursu NBP — zapisuję bez przeliczenia na PLN."
+        );
+      }
+    } else {
+      payload.exchange_rate = null;
+    }
+
     try {
       if (isEdit && id) {
         await updateProduct.mutateAsync({ id, changes: payload });
@@ -236,70 +265,55 @@ export default function ProductForm() {
               <CardTitle className="text-base">Zakup</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="purchase_price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cena zakupu</FormLabel>
-                      <div className="flex gap-2">
-                        <FormControl>
-                          <Input
-                            type="number"
-                            inputMode="decimal"
-                            step="0.01"
-                            placeholder="0,00"
-                            {...field}
-                          />
-                        </FormControl>
-                        <div className="flex shrink-0 overflow-hidden rounded-md border border-input">
-                          {(["EUR", "PLN"] as const).map((c) => (
-                            <button
-                              key={c}
-                              type="button"
-                              onClick={() =>
-                                form.setValue("purchase_currency", c)
-                              }
-                              className={cn(
-                                "px-3 text-sm font-medium transition-colors",
-                                currency === c
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-background text-muted-foreground hover:bg-secondary"
-                              )}
-                            >
-                              {c}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="exchange_rate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Kurs EUR→PLN</FormLabel>
+              <FormField
+                control={form.control}
+                name="purchase_price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cena zakupu</FormLabel>
+                    <div className="flex gap-2">
                       <FormControl>
                         <Input
                           type="number"
                           inputMode="decimal"
-                          step="0.0001"
-                          placeholder="np. 4,30"
+                          step="0.01"
+                          placeholder="0,00"
                           {...field}
                         />
                       </FormControl>
+                      <div className="flex shrink-0 overflow-hidden rounded-md border border-input">
+                        {(["EUR", "PLN"] as const).map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() =>
+                              form.setValue("purchase_currency", c)
+                            }
+                            className={cn(
+                              "px-3 text-sm font-medium transition-colors",
+                              currency === c
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-background text-muted-foreground hover:bg-secondary"
+                            )}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {currency === "EUR" && (
                       <FormDescription>
-                        Puste = użyty kurs globalny z Ustawień.
+                        {nbpQuery.isFetching
+                          ? "Pobieram kurs NBP…"
+                          : previewPln !== null
+                            ? `≈ ${formatMoney(previewPln, "PLN")} (kurs NBP ${nbpQuery.data?.rate} z ${nbpQuery.data?.effectiveDate})`
+                            : "Przeliczenie na PLN wg kursu NBP z dnia zakupu (zapisywane automatycznie)."}
                       </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <FormField

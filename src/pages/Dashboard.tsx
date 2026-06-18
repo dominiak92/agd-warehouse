@@ -12,38 +12,52 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProducts } from "@/hooks/useProducts";
-import { useDefaultRate } from "@/hooks/useSettings";
 import { calcProfit, formatMoney, purchasePricePln } from "@/lib/currency";
+
+const MONTH_LABEL = new Date().toLocaleDateString("pl-PL", {
+  month: "long",
+  year: "numeric",
+});
 
 export default function Dashboard() {
   const { data: products, isLoading } = useProducts();
-  const defaultRate = useDefaultRate();
 
   const m = useMemo(() => {
     const list = products ?? [];
+    const monthPrefix = new Date().toISOString().slice(0, 7); // YYYY-MM
+
     const byStatus = {
       w_magazynie: 0,
       wystawione: 0,
       zarezerwowane: 0,
-      sprzedane: 0,
     };
     let frozenCapital = 0; // suma zakupu (PLN) niesprzedanych
-    let profit = 0; // suma zysku ze sprzedanych
     let listedValue = 0; // suma cen wystawienia
+    let soldThisMonth = 0; // liczba sprzedanych w bieżącym miesiącu
+    let profitThisMonth = 0; // zysk ze sprzedanych w bieżącym miesiącu
 
     for (const p of list) {
-      byStatus[p.status] += 1;
       if (p.status === "sprzedane") {
-        profit += calcProfit(p, defaultRate).profit ?? 0;
+        if ((p.sale_date ?? "").startsWith(monthPrefix)) {
+          soldThisMonth += 1;
+          profitThisMonth += calcProfit(p).profit ?? 0;
+        }
       } else {
-        frozenCapital += purchasePricePln(p, defaultRate) ?? 0;
-      }
-      if (p.status === "wystawione") {
-        listedValue += p.listing_price ?? 0;
+        byStatus[p.status] += 1;
+        frozenCapital += purchasePricePln(p) ?? 0;
+        if (p.status === "wystawione") {
+          listedValue += p.listing_price ?? 0;
+        }
       }
     }
-    return { total: list.length, byStatus, frozenCapital, profit, listedValue };
-  }, [products, defaultRate]);
+    return {
+      byStatus,
+      frozenCapital,
+      listedValue,
+      soldThisMonth,
+      profitThisMonth,
+    };
+  }, [products]);
 
   if (isLoading) {
     return (
@@ -78,8 +92,8 @@ export default function Dashboard() {
         />
         <Stat
           icon={<CheckCircle2 className="h-5 w-5" />}
-          label="Sprzedane"
-          value={m.byStatus.sprzedane}
+          label="Sprzedane (mies.)"
+          value={m.soldThisMonth}
         />
       </div>
 
@@ -93,10 +107,12 @@ export default function Dashboard() {
         />
         <Money
           icon={<TrendingUp className="h-5 w-5 text-emerald-400" />}
-          label="Zysk ze sprzedanych"
-          hint="Suma (sprzedaż − zakup) w PLN"
-          value={formatMoney(m.profit, "PLN")}
-          valueClass={m.profit >= 0 ? "text-emerald-400" : "text-destructive"}
+          label={`Zysk — ${MONTH_LABEL}`}
+          hint="Sprzedane w tym miesiącu (sprzedaż − zakup, PLN)"
+          value={formatMoney(m.profitThisMonth, "PLN")}
+          valueClass={
+            m.profitThisMonth >= 0 ? "text-emerald-400" : "text-destructive"
+          }
         />
         <Money
           icon={<Store className="h-5 w-5 text-primary" />}
@@ -107,8 +123,8 @@ export default function Dashboard() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Przeliczenia EUR→PLN wg kursu z produktu lub kursu globalnego (
-        {defaultRate}) z Ustawień.
+        Przeliczenia EUR→PLN wg kursu NBP zapisanego przy produkcie (z dnia
+        zakupu).
       </p>
     </div>
   );

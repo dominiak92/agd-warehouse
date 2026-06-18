@@ -6,14 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTrips } from "@/hooks/useTrips";
 import { useProducts } from "@/hooks/useProducts";
-import { useDefaultRate } from "@/hooks/useSettings";
 import { formatMoney, purchasePricePln } from "@/lib/currency";
 
 export default function Trips() {
   const navigate = useNavigate();
   const { data: trips, isLoading } = useTrips();
   const { data: products } = useProducts();
-  const defaultRate = useDefaultRate();
 
   // Agregacja per wyjazd: liczba produktów + suma zakupów w PLN
   const stats = useMemo(() => {
@@ -22,11 +20,11 @@ export default function Trips() {
       if (!p.trip_id) return;
       const entry = map.get(p.trip_id) ?? { count: 0, total: 0 };
       entry.count += 1;
-      entry.total += purchasePricePln(p, defaultRate) ?? 0;
+      entry.total += purchasePricePln(p) ?? 0;
       map.set(p.trip_id, entry);
     });
     return map;
-  }, [products, defaultRate]);
+  }, [products]);
 
   return (
     <div className="space-y-4">

@@ -15,7 +15,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { ProductCard } from "@/components/products/ProductCard";
 import { useProducts, useUpdateProduct } from "@/hooks/useProducts";
-import { useDefaultRate } from "@/hooks/useSettings";
 import { CATEGORIES, STATUSES } from "@/lib/constants";
 import { purchasePricePln } from "@/lib/currency";
 import type { ProductStatus, ProductWithTrip } from "@/lib/types";
@@ -31,7 +30,6 @@ const ALL = "all";
 
 export default function Products() {
   const { data: products, isLoading } = useProducts();
-  const defaultRate = useDefaultRate();
   const updateProduct = useUpdateProduct();
 
   const [search, setSearch] = useState("");
@@ -75,8 +73,8 @@ export default function Products() {
           return a.name.localeCompare(b.name, "pl");
         case "price_desc":
         case "price_asc": {
-          const pa = purchasePricePln(a, defaultRate) ?? 0;
-          const pb = purchasePricePln(b, defaultRate) ?? 0;
+          const pa = purchasePricePln(a) ?? 0;
+          const pb = purchasePricePln(b) ?? 0;
           return sort === "price_desc" ? pb - pa : pa - pb;
         }
         case "purchase_date_asc":
@@ -97,7 +95,6 @@ export default function Products() {
     dateFrom,
     dateTo,
     sort,
-    defaultRate,
   ]);
 
   async function handleToggleListed(
@@ -242,7 +239,6 @@ export default function Products() {
             <ProductCard
               key={p.id}
               product={p}
-              defaultRate={defaultRate}
               onToggleListed={handleToggleListed}
               toggleDisabledFor={
                 updateProduct.isPending ? updateProduct.variables?.id : null

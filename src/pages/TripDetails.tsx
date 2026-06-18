@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/products/StatusBadge";
 import { useDeleteTrip, useTrip, useTripProducts } from "@/hooks/useTrips";
-import { useDefaultRate } from "@/hooks/useSettings";
 import { formatMoney, purchasePricePln } from "@/lib/currency";
 
 export default function TripDetails() {
@@ -24,17 +23,16 @@ export default function TripDetails() {
   const navigate = useNavigate();
   const { data: trip, isLoading } = useTrip(id);
   const { data: products } = useTripProducts(id);
-  const defaultRate = useDefaultRate();
   const deleteTrip = useDeleteTrip();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const total = useMemo(
     () =>
       products?.reduce(
-        (sum, p) => sum + (purchasePricePln(p, defaultRate) ?? 0),
+        (sum, p) => sum + (purchasePricePln(p) ?? 0),
         0
       ) ?? 0,
-    [products, defaultRate]
+    [products]
   );
 
   if (isLoading) return <Skeleton className="h-[400px] w-full" />;

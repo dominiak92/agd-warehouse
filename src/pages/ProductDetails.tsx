@@ -29,7 +29,6 @@ import {
 import { StatusBadge } from "@/components/products/StatusBadge";
 import { SellProductDialog } from "@/components/products/SellProductDialog";
 import { useDeleteProduct, useProduct } from "@/hooks/useProducts";
-import { useDefaultRate } from "@/hooks/useSettings";
 import { categoryLabel } from "@/lib/constants";
 import {
   calcProfit,
@@ -56,7 +55,6 @@ export default function ProductDetails() {
   const navigate = useNavigate();
   const { data: product, isLoading } = useProduct(id);
   const deleteProduct = useDeleteProduct();
-  const defaultRate = useDefaultRate();
 
   const [sellOpen, setSellOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -71,8 +69,8 @@ export default function ProductDetails() {
     );
   }
 
-  const costPln = purchasePricePln(product, defaultRate);
-  const { profit, margin } = calcProfit(product, defaultRate);
+  const costPln = purchasePricePln(product);
+  const { profit, margin } = calcProfit(product);
   const isSold = product.status === "sprzedane";
 
   async function handleDelete() {
@@ -169,8 +167,8 @@ export default function ProductDetails() {
           </Row>
           {product.purchase_currency === "EUR" && (
             <>
-              <Row label="Kurs EUR→PLN">
-                {product.exchange_rate ?? `${defaultRate} (globalny)`}
+              <Row label="Kurs EUR→PLN (NBP)">
+                {product.exchange_rate ?? "—"}
               </Row>
               <Row label="Zakup w PLN">{formatMoney(costPln, "PLN")}</Row>
             </>
@@ -205,18 +203,6 @@ export default function ProductDetails() {
             {formatMoney(product.sale_price, "PLN")}
           </Row>
           <Row label="Data sprzedaży">{formatDate(product.sale_date)}</Row>
-          {product.olx_url && (
-            <Row label="OLX">
-              <a
-                href={product.olx_url}
-                target="_blank"
-                rel="noreferrer"
-                className="text-primary underline"
-              >
-                Ogłoszenie
-              </a>
-            </Row>
-          )}
           <Separator className="my-1" />
           <Row label="Zysk">
             <span

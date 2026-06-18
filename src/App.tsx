@@ -14,7 +14,6 @@ import ProductDetails from "@/pages/ProductDetails";
 import Trips from "@/pages/Trips";
 import TripDetails from "@/pages/TripDetails";
 import Dashboard from "@/pages/Dashboard";
-import Settings from "@/pages/Settings";
 
 export default function App() {
   return (
@@ -38,7 +37,6 @@ export default function App() {
               <Route path="/produkt/:id/edytuj" element={<ProductForm />} />
               <Route path="/wyjazdy" element={<Trips />} />
               <Route path="/wyjazd/:id" element={<TripDetails />} />
-              <Route path="/ustawienia" element={<Settings />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

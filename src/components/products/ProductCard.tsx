@@ -10,19 +10,17 @@ import type { ProductWithTrip } from "@/lib/types";
 
 interface Props {
   product: ProductWithTrip;
-  defaultRate: number;
   onToggleListed: (product: ProductWithTrip, listed: boolean) => void;
   toggleDisabledFor?: string | null;
 }
 
 export function ProductCard({
   product,
-  defaultRate,
   onToggleListed,
   toggleDisabledFor,
 }: Props) {
   const navigate = useNavigate();
-  const pln = purchasePricePln(product, defaultRate);
+  const pln = purchasePricePln(product);
   const isSold = product.status === "sprzedane";
 
   return (
@@ -41,7 +39,9 @@ export function ProductCard({
                 categoryLabel(product.category)}
             </p>
           </div>
-          <StatusBadge status={product.status} />
+          <div className="shrink-0">
+            <StatusBadge status={product.status} />
+          </div>
         </div>
 
         <div className="flex items-end justify-between gap-3">
